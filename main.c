@@ -1,5 +1,5 @@
-#include "cauldron.h"
 #include <stdio.h>
+#include "cauldron.h"
 
 int main(void) {
   int flag = 4;

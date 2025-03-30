@@ -1,7 +1,9 @@
 #include <stdbool.h>
 // clang doesnt support nested functions
-#if defined(__clang__) || !defined(__GNUC__)
-static_assert(false, "Unsupported compiler!");
+#if defined(__clang__)
+#error Clang doesn't support nested functions. Please use GCC instead.
+#elif !defined(__GNUC__)
+#error This uses GCC-specific extensions, please use a GNUC compatible C compiler.
 #endif
 
 #define _(x) __id_impl(x, __LINE__)
