@@ -1,7 +1,7 @@
 #include <stdbool.h>
 // clang doesnt support nested functions
 #if defined(__clang__) || !defined(__GNUC__)
-static_assert(false, "Unsupported platform!");
+static_assert(false, "Unsupported compiler!");
 #endif
 
 #define _(x) __id_impl(x, __LINE__)
