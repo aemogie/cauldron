@@ -1,3 +1,4 @@
+#include "vaargs.h"
 #include <fcntl.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -12,18 +13,24 @@
 #define __id_impl(name, line) __id_impl2(name, line)
 #define __id_impl2(name, line) __##name##_##line
 
-// FIXME: i dont like this on_enter pollution
-#define scope(on_enter, on_exit)                                               \
-  on_enter;                                                                    \
-  for (bool _(flag) = (true); _(flag); _(flag) = (on_exit, false))
+#define __inline_struct_member(arg) arg;
+#define inline_struct(...)                                                     \
+  struct _(inline) {                                                           \
+    for_each(__inline_struct_member, __VA_ARGS__);                             \
+  }
+
+#define scope(on_enter, on_exit, ...)                                          \
+  for (inline_struct(bool _(flag), __VA_ARGS__)                                \
+           state = {._(flag) = true, on_enter};                                \
+       state._(flag); state._(flag) = (on_exit, false))
 
 #define defer(expr)                                                            \
   void inline _(deferred)(void *_) { expr; };                                  \
   __attribute__((cleanup(_(deferred)))) void *_(defer) = NULL;
 
 #define with_resource(res_type, ...)                                           \
-  scope(struct res_type res_type = res_type##_open(__VA_ARGS__),               \
-        res_type##_close(&res_type))
+  scope(.res_type = res_type##_open(__VA_ARGS__),                            \
+        res_type##_close(&state.res_type), struct res_type res_type)
 
 // TODO: move these and includes to impl
 struct file {
