@@ -1,0 +1,5 @@
+#+TITLE: cauldron
+
+a c base layer that attempts to abuse preprocessor macros and gcc
+extensions. this is not meant for usage, this is purely for
+experiments with the preprocessor.
