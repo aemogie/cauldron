@@ -28,7 +28,3 @@
 #define for_each_impl_14(op, x, ...) op(x) for_each_impl_13(op, __VA_ARGS__)
 #define for_each_impl_15(op, x, ...) op(x) for_each_impl_14(op, __VA_ARGS__)
 #define for_each_impl_16(op, x, ...) op(x) for_each_impl_15(op, __VA_ARGS__)
-
-struct file {
-  int fd;
-};

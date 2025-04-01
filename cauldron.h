@@ -15,7 +15,7 @@
 
 #define __inline_struct_member(arg) arg;
 #define inline_struct(...)                                                     \
-  struct _(inline) {                                                           \
+  struct {                                                                     \
     for_each(__inline_struct_member, __VA_ARGS__);                             \
   }
 
@@ -29,7 +29,7 @@
   __attribute__((cleanup(_(deferred)))) void *_(defer) = NULL;
 
 #define with_resource(res_type, ...)                                           \
-  scope(.res_type = res_type##_open(__VA_ARGS__),                            \
+  scope(.res_type = res_type##_open(__VA_ARGS__),                              \
         res_type##_close(&state.res_type), struct res_type res_type)
 
 // TODO: move these and includes to impl
