@@ -16,7 +16,7 @@
 #define __inline_struct_member(arg) arg;
 #define inline_struct(...)                                                     \
   struct {                                                                     \
-    for_each(__inline_struct_member, __VA_ARGS__);                             \
+    for_each(__inline_struct_member, __VA_ARGS__)                              \
   }
 
 #define scope(on_enter, on_exit, ...)                                          \

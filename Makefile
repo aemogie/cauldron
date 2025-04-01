@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS ?= -O
+CFLAGS ?= -O -Werror -Wall -Wpedantic
 EXAMPLE ?= src/main.c
 # if we're formatting c/h files, use clang-format
 build/fmt/%.c: FMT ?= clang-format -i
@@ -13,7 +13,9 @@ build/bin/%: CFLAGS := -g $(CFLAGS)
 
 .PHONY: all compile run format clean clangd
 
-.DEFAULT_GOAL: compile
+.DEFAULT_GOAL: all
+all: format compile
+
 compile: build/bin/$(EXAMPLE:src/%.c=%)
 
 run: build/bin/$(EXAMPLE:src/%.c=%)
