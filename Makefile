@@ -14,7 +14,7 @@ build/bin/%: CFLAGS := -g $(CFLAGS)
 .PHONY: all compile run format clean clangd
 
 .DEFAULT_GOAL: all
-all: format compile
+all: clean format compile
 
 compile: build/bin/$(EXAMPLE:src/%.c=%)
 
@@ -23,8 +23,10 @@ run: build/bin/$(EXAMPLE:src/%.c=%)
 
 format: $(subst src/,build/fmt/,$(wildcard src/*.c src/*.h))
 
-clean: | build/
-	rm -r build
+clean:
+ifneq ($(wildcard build/),)
+	rm -r build/
+endif
 
 clangd: # just piggypack off the guix stuff below
 	clangd
@@ -53,7 +55,7 @@ build/fmt/%.h: src/%.h | build/fmt/
 build/:
 	@mkdir $@
 	@echo "*" > $@/.gitignore
-build/fmt/:
+build/fmt/: | build/
 	@mkdir $@
 build/obj/: | build/
 	@mkdir $@
