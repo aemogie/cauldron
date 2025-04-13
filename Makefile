@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS ?= -O -Werror -Wall
+CFLAGS ?= -Werror -Wall
 EXAMPLE ?= src/main.c
 
 .PHONY: all compile run format clean
@@ -61,5 +61,5 @@ $(eval $(call build_kind, build/asm/%.s, -S))
 $(eval $(call build_kind, build/pp/%.c, -E))
 $(eval $(call build_kind, build/bin/%, -g))
 
-$(eval $(call format_kind, %.c, clang-format -i))
+# $(eval $(call format_kind, %.c, clang-format -i))
 $(eval $(call format_kind, %.h, clang-format -i))

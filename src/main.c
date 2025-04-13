@@ -1,17 +1,14 @@
 #include "cauldron.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(void) {
-  int flag = 4;
-  /* defer(printf("Bye, World!%d\n", flag)); */
-  scope(._x = printf("hello\n"), printf("bye\n"), int _x) {
-    printf("Hello, World!\n");
-    printf("%d\n", flag);
-  }
-  with_resource(file, __FILE__, 0) {
-    char buf[1024];
-    read(state.file.fd, buf, sizeof(buf));
-    printf("%s", buf);
-  }
-  printf("%d\n", flag);
+  char *buf;
+  printf("buffer declared %p\n", buf);
+  defer {
+    free(buf);
+    printf("buffer freed %p\n", buf);
+  };
+  buf = malloc(100);
+  printf("allocated buffer %p\n", buf);
 }
