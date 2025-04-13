@@ -1,20 +1,11 @@
 CC := gcc
-CFLAGS ?= -O -Werror -Wall -Wpedantic
+CFLAGS ?= -O -Werror -Wall
 EXAMPLE ?= src/main.c
-# if we're formatting c/h files, use clang-format
-build/fmt/%.c: FMT ?= clang-format -i
-build/fmt/%.h: FMT ?= clang-format -i
 
-# force evaluate to not recursively define
-build/obj/%.o: CFLAGS := -c $(CFLAGS)
-build/asm/%.s: CFLAGS := -S -fverbose-asm $(CFLAGS)
-build/pp/%.c: CFLAGS := -E $(CFLAGS)
-build/bin/%: CFLAGS := -g $(CFLAGS)
-
-.PHONY: all compile run format clean clangd
+.PHONY: all compile run format clean
 
 .DEFAULT_GOAL: all
-all: clean format compile
+all: format compile
 
 compile: build/bin/$(EXAMPLE:src/%.c=%)
 
@@ -28,57 +19,47 @@ ifneq ($(wildcard build/),)
 	rm -r build/
 endif
 
-clangd: # just piggypack off the guix stuff below
-	clangd
-
-# different compilations (.o is just there for looks currently)
-build/obj/%.o: src/%.c | build/obj/
-	$(CC) $(CFLAGS) $^ -o $@
-build/pp/%.c: src/%.c | build/pp/
-	$(CC) $(CFLAGS) $^ -o $@
-build/asm/%.s: src/%.c | build/asm/
-	$(CC) $(CFLAGS) $^ -o $@
-build/bin/%: src/%.c | build/bin/
-	$(CC) $(CFLAGS) $^ -o $@
-
-# touch a file in `build/fmt` so that make knows when it last
-# formatted
-# https://www.gnu.org/software/make/manual/html_node/Empty-Targets.html
-build/fmt/%.c: src/%.c | build/fmt/
-	$(FMT) $<
-	@touch $@
-build/fmt/%.h: src/%.h | build/fmt/
-	$(FMT) $<
-	@touch $@
-
-# build directories
-build/:
-	@mkdir $@
-	@echo "*" > $@/.gitignore
-build/fmt/: | build/
-	@mkdir $@
-build/obj/: | build/
-	@mkdir $@
-build/pp/: | build/
-	@mkdir $@
-build/asm/: | build/
-	@mkdir $@
-build/bin/: | build/
-	@mkdir $@
-
-ifneq ($(shell command -v guix),)
-ifeq ($(GUIX_MANIFEST_LOADED),)
-# TODO: lock channels
-define code
-(use-modules (ice-9 textual-ports))
-(define cmdline (call-with-input-file "/proc/self/cmdline" get-string-all))
-(define cmdline (string-tokenize cmdline))
-(define wrapped (cons* "guix" "shell" "-m" "manifest.scm" "--" cmdline))
-(setenv "GUIX_MANIFEST_LOADED" "1")
-(apply execlp (car wrapped) wrapped)
+define make_dir
+$(let this, $(strip $(1:/=)),
+$(let parent, $(dir $(this)),
+# === #
+$(if $(this:.=), # stop if we're at the toplevel
+$(if $(findstring $(this),$(__make_dir_visited)),, # or if we've visited
+$(this)/: | $(parent:./=)
+	@mkdir $(this)
+	@echo "*" >> $(this)/.gitignore
+__make_dir_visited += $(this)
+# recurse
+$(call make_dir, $(parent))))))
 endef
-Makefile: force
-	$(guile $(code))
-force: ;
-endif
-endif
+
+define build_kind
+$(let target, $(strip $(1)),
+$(let flags, $(strip $(2)),
+$(let build_dir, $(dir $(target)),
+# === #
+$(target): src/%.c | $(build_dir)
+	$(CC) $(flags) $(CFLAGS) $$^ -o $$@
+$(call make_dir, $(build_dir)))))
+endef
+
+# todo: figure out how to format nested files
+define format_kind
+$(let target, $(strip $(1)),
+$(let formatter, $(strip $(2)),
+# === #
+# the target is a marker
+# https://www.gnu.org/software/make/manual/html_node/Empty-Targets.html
+build/fmt/$(target): src/$(target) | build/fmt/
+	$(formatter) $$^
+	@touch $$@
+$(call make_dir, build/fmt/)))
+endef
+
+$(eval $(call build_kind, build/obj/%.o, -c))
+$(eval $(call build_kind, build/asm/%.s, -S))
+$(eval $(call build_kind, build/pp/%.c, -E))
+$(eval $(call build_kind, build/bin/%, -g))
+
+$(eval $(call format_kind, %.c, clang-format -i))
+$(eval $(call format_kind, %.h, clang-format -i))
