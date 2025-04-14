@@ -1,14 +1,17 @@
 #include "cauldron.h"
+#include "sh.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(void) {
+int main(int argc, const char **argv) {
+  echo(Hello, World!);
+  rm(build/bin/main);
   char *buf;
-  printf("buffer declared %p\n", buf);
+  echo(buffer declared);
   defer {
     free(buf);
-    printf("buffer freed %p\n", buf);
+    echo(buffer freed);
   };
   buf = malloc(100);
-  printf("allocated buffer %p\n", buf);
+  echo(allocated buffer);
 }
